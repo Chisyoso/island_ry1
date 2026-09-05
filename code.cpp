@@ -3,11 +3,17 @@
 #include <string>
 #include <vector>
 #include <random>
+#include <algorithm>
+
 using namespace std;
 int hand = -1;
-
+int eyes[] = { 0, 20};
 int mision = 0;
+
+
+int pedid = 100;
 string pedido = "madera" ;
+int tiempo[] = { 0, 0};
 
 random_device g;
 int frame[4];
@@ -16,11 +22,12 @@ mt19937 gen(g());
     int rx = 0;
     int ry = 0; 
     void hitbos(int x, int y, int dx, int dy);
-int aleatorio(int a, int b){
+
+    int aleatorio(int a, int b){
     uniform_int_distribution<int> total (a, b);
     return total(gen);
 }
-
+    
 struct obj{
   int id;  
   int x;
@@ -28,7 +35,10 @@ struct obj{
   int t;
   int v, vx;  
 };
+
 vector<obj> arb;
+vector<obj> rock;
+vector<obj> mon;
 
 Color colo();
 
@@ -45,13 +55,37 @@ return a * 255 / 100;
     return 0;
 }
 
+string matran(){
+    string f;
+    int a = aleatorio(1, 5);
+    switch(a){
+        case 1: f = "madera";
+        pedid = 100;
+        break;
+        case 2: f = "piedra";
+        pedid = 101;
+        break;
+        case 3: f = "vallas";
+        pedid = 102;
+        break;
+        case 4: f = "tierra";
+        pedid = 103;
+        break;
+        default: f = "hueso";
+        pedid = 104;
+         
+    }
+    
+    return f;
+}
+
 void manos(){
     switch(hand){
         case 100: DrawRectangle(rx, ry + 25, 20, 20, BROWN); 
         break; // madera
-        case 102: DrawRectangle(rx, ry + 25, 20, 20, GRAY);
+        case 101: DrawRectangle(rx, ry + 25, 20, 20, GRAY);
         break; // piedra
-        case 103: DrawRectangle(rx, ry + 25, 20, 20, RED);
+        case 102: DrawRectangle(rx, ry + 25, 20, 20, RED);
         break; // vallas salvajes
     }
 }
@@ -65,9 +99,19 @@ void bote(int x, int y){
     DrawRectangle(-840 + x, -30+ y, 10, 60, cafe2);
     DrawRectangle(-760 + x , -30 + y, 10, 60, cafe2);
     
-    
+    if(rx  < (-800 + x)+ 100 && rx >  (-800 + x)  && ry > (-50 + y)   && ry <  (-30 + y) + 100 && hand == pedid){
+    DrawText("justo lo que neccesito (usa w )", rx- 200 , ry  - 70 , 20, BLACK);
+    if(IsKeyDown(KEY_W) ){
+        mision++;
+        pedido = matran();
+        hand = -1;
+        
+    }
+}
+
     if(rx  < (-800 + x)+ 100 && rx >  (-800 + x)  && ry > (-50 + y)   && ry <  (-30 + y) + 100 ){
     DrawText(TextFormat("consigue: %s    materiales: %d / 10", pedido.c_str(), mision ), rx- 200 , ry  - 50 , 20, BLACK);
+    
 }
 }
 
@@ -92,6 +136,35 @@ void iniciar(){
         arb[i].v = arb[i].t / 25;
         arb[i].vx = arb[i].v; 
     }
+    sort(arb.begin(), arb.end(), [](obj a, obj b){return a.y < b.y; });
+    
+    ctd_arb = aleatorio(5, 10);
+    
+    for(int i = 0; i < ctd_arb; i++){
+        rock.push_back({});
+        rock[i].x = aleatorio(-650, 650);
+        rock[i].y = aleatorio(-500, 500);
+        rock[i].t = aleatorio(80, 170);
+        rock[i].id = i;
+        rock[i].v = rock[i].t / 25;
+        rock[i].vx = rock[i].v; 
+    }
+    sort(rock.begin(), rock.end(), [](obj a, obj b){return a.y < b.y; });
+    
+    
+    ctd_arb = aleatorio(5, 10);
+    
+    for(int i = 0; i < ctd_arb; i++){
+        mon.push_back({});
+        mon[i].x = aleatorio(-650, 650);
+        mon[i].y = aleatorio(-500, 500);
+        mon[i].t = aleatorio(0, 20);
+        mon[i].id = i;
+        mon[i].v = mon[i].t / 2;
+        mon[i].vx = mon[i].v; 
+    }
+    sort(mon.begin(), mon.end(), [](obj a, obj b){return a.y < b.y; });
+    
     
     for(int a = 0; a < tamax; a++){
         for(int b = 0; b < tamay; b++){
@@ -113,7 +186,7 @@ void arbol(int x, int y, int t, int id){
     DrawRectangle(x  -  t/1.1 , y + t/9 , (t / 1.5) * 2, (t / 2) * 2, GREEN);
     
     if(rx  < x + 100 && rx > x - 150  && ry < y + 200 + t && ry > y + 100 && (hand == id || hand == -1)){
-        hand = id;
+        hand = id ;
         lifeline(arb[id].v ,arb[id].vx);
         frame[0] = 0;
         if (IsKeyDown(KEY_Q) && frame[1] > 40 && hand < 99){ arb[id].v -= 1; frame[1] = 0;}  
@@ -132,6 +205,56 @@ void arbol(int x, int y, int t, int id){
     
 }
 
+void roca(int x, int y, int t, int id){
+    Color gris = {con(30), con(30), con(30), 255};
+    DrawRectangle(x - 10, y - 10, 20, 20, gris);
+    DrawRectangle(x - 20, y - 20, 20, 30, GRAY);
+    
+    if(rx < x + 30 && rx > x - 30 && ry > y - 30 && ry < y + 30&& (hand == id + 20|| hand == -1)){
+        hand = id + 20;
+        lifeline(rock[id].v ,rock[id].vx);
+        frame[0] = 0;
+        if (IsKeyDown(KEY_Q) && frame[1] > 40 && hand < 99){ rock[id].v -= 2; frame[1] = 0;}  
+        DrawText(TextFormat("una roca? toca (q) " ) , rx,  ry + 20, 20, BLACK);
+    }
+    else if(frame[0] > 40 && hand < 99){
+        hand  = -1;
+    }
+    if(rock[id].v <= 0){
+        rock.erase(rock.begin() + id);
+        for(int i = 0; i < rock.size(); i++){
+         rock[i].id = i;
+         hand = 101;   
+        }
+    }
+}
+
+
+void monte(int x, int y, int t, int id){
+    Color green  = {con(10), con(80), con(10), 255};
+    DrawRectangle(x - 20, y - 20, 30 + t, 30 + t, green);
+    DrawRectangle(x - 30, y - 30, 30 + t, 40 + t, GREEN);
+    
+    hitbos(x - 40 - t, y - 40 - t, x + 40, y + 40);
+    if(rx < x + 40 +  t&& rx > x - 40 - t && ry > y - 40  - t&& ry < y + 40  + t&& (hand == id + 40|| hand == -1)){
+        hand = id + 40;
+        lifeline(mon[id].v ,mon[id].vx);
+        frame[0] = 0;
+        if (IsKeyDown(KEY_Q) && frame[1] > 40 && hand < 99){ mon[id].v -= 2; frame[1] = 0;}  
+        DrawText(TextFormat("un arbusto? toca (q) " ) , rx,  ry + 20, 20, BLACK);
+    }
+    else if(frame[0] > 40 && hand < 99){
+        hand  = -1;
+    }
+    if(mon[id].v <= 0){
+        mon.erase(mon.begin() + id);
+        for(int i = 0; i < mon.size(); i++){
+         mon[i].id = i;
+         hand = 102;   
+        }
+    }
+}
+
 void map(int ax, int ay){
     int x = ax;
     int y = ay;
@@ -148,8 +271,8 @@ void per(int x, int y){
     DrawRectangle(x ,y ,50,50,BLUE);
     DrawRectangle(x + 2, y + 10,20 ,25, WHITE);
     DrawRectangle(x + 27, y + 10 ,20 ,25, WHITE);
-    DrawRectangle(x + 2, y + 20,10 ,15, BLACK);
-    DrawRectangle(x + 27, y + 20,10 ,15, BLACK);
+    DrawRectangle(x + 2 + eyes[0], y +  eyes[1],10 ,15, BLACK);
+    DrawRectangle(x + 27+  eyes[0], y + eyes[1],10 ,15, BLACK);
     
 }
 
@@ -172,15 +295,71 @@ Color colo(){
     }
 }
 
+
+
+void reloj(){
+    static bool day = true;
+     
+    tiempo[0]++;
+    static Color c2 = {con(20), con(20), con(40), 0 };
+        if(tiempo[0] >= 120 && day){
+            tiempo[1]++;
+            tiempo[0] = 0;
+            if(tiempo[1] >= 100){
+                day = false;
+            }
+        }
+        
+        else if(tiempo[0] >= 120 && !day){
+            tiempo[1]--;
+            tiempo[0] = 0;
+            if(tiempo[1] <= 0){
+                day = true;
+            }
+        }
+        
+         if(tiempo[1] > 50){
+             
+             c2 = {con(10), con(10), con(40), con(((tiempo[1] / 2) * 2) -35)  };
+        }else{
+            c2 = {con(20), con(20), con(40), 0 };
+        }
+            
+        DrawRectangle(0, 0, 800, 450, c2);    
+}
+
 void arbolrend(){
+    for(int i = 0; i < rock.size(); i++){
+        rock[i].id = i;
+        roca(rock[i].x,rock[i].y, rock[i].t, rock[i].id);
+    }
+    
+    for(int i = 0; i < mon.size(); i++){
+        mon[i].id = i;
+        monte(mon[i].x,mon[i].y, mon[i].t, mon[i].id);
+    }
+    
     for(int i = 0; i < arb.size(); i++){
         arb[i].id = i;
         arbol(arb[i].x,arb[i].y, arb[i].t, arb[i].id);
     }
+    
+    
+    
 }
 
+void indic(){
+    if(hand > 98){
+        DrawText(TextFormat("mano ocupada, (a) para soltar" ) , rx,  ry + 20, 20, BLACK);
+    }
+    
+    if(IsKeyDown(KEY_A) && hand > 98){
+        hand = 0;
+    }
+}
 int main() {
    // #960
+   
    int jx = 0;
     int jy = 0;
     int speed = 5;
@@ -205,10 +384,10 @@ int main() {
     if(frame[1] < 60){
         frame[1]++;
     }
-        if (IsKeyDown(KEY_RIGHT)){ jugador.x += speed; jx +=speed; rx += speed;}
-        if (IsKeyDown(KEY_LEFT)){  jugador.x -= speed; jx -=speed; rx -= speed;}
-        if (IsKeyDown(KEY_UP)){    jugador.y -= speed; jy +=speed; ry -= speed;}
-        if (IsKeyDown(KEY_DOWN)){  jugador.y += speed; jy -=speed; ry += speed;}
+        if (IsKeyDown(KEY_RIGHT)){ jugador.x += speed; jx +=speed; rx += speed; eyes[0] = 10;}
+        if (IsKeyDown(KEY_LEFT)){  jugador.x -= speed; jx -=speed; rx -= speed; eyes[0] = 0;}
+        if (IsKeyDown(KEY_UP)){    jugador.y -= speed; jy +=speed; ry -= speed; eyes[1] = 10;}
+        if (IsKeyDown(KEY_DOWN)){  jugador.y += speed; jy -=speed; ry += speed; eyes[1] = 20;}
         // funciones 
         if(rx > 800 ){
             jugador.x -= 4; jx -= 4; rx -= 4;
@@ -237,15 +416,19 @@ int main() {
                 y += 400;
         }
         x += 400;
-    }
-        bote(0,0);
+    }    
+        
+        
         per(jugador.x - 25,jugador.y - 25);
         manos();
         arbolrend();
+        indic();
+        bote(0, 0);
         EndMode2D();
+        reloj();
         DrawText("coordenadas : ", 10, 10, 20, BLACK);
         DrawText(TextFormat("x: %d y: %d", jx , jy) , 10, 30, 20, BLACK);
-        DrawText(TextFormat("x: %d y: %d", rx , ry) , 10, 50, 20, BLACK);
+        DrawText(TextFormat("man: %d ", hand) , 10, 60, 20, BLACK);
          x = 0;
         for(int i = 0; i < life; i++){
             DrawRectangle(340 + x, 350, 10, 10, RED);
