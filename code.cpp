@@ -160,7 +160,7 @@ void iniciar(){
         mon[i].y = aleatorio(-500, 500);
         mon[i].t = aleatorio(0, 20);
         mon[i].id = i;
-        mon[i].v = mon[i].t / 2;
+        mon[i].v = (mon[i].t / 4) + 2;
         mon[i].vx = mon[i].v; 
     }
     sort(mon.begin(), mon.end(), [](obj a, obj b){return a.y < b.y; });
@@ -231,11 +231,10 @@ void roca(int x, int y, int t, int id){
 
 
 void monte(int x, int y, int t, int id){
-    Color green  = {con(10), con(80), con(10), 255};
-    DrawRectangle(x - 20, y - 20, 30 + t, 30 + t, green);
-    DrawRectangle(x - 30, y - 30, 30 + t, 40 + t, GREEN);
+    Color green  = {con(20), con(95), con(30), 255};
+    DrawRectangle(x - 20, y - 20, 30 + t, 30 + t, GREEN);
+    DrawRectangle(x - 30, y - 30, 30 + t, 40 + t, green);
     
-    hitbos(x - 40 - t, y - 40 - t, x + 40, y + 40);
     if(rx < x + 40 +  t&& rx > x - 40 - t && ry > y - 40  - t&& ry < y + 40  + t&& (hand == id + 40|| hand == -1)){
         hand = id + 40;
         lifeline(mon[id].v ,mon[id].vx);
