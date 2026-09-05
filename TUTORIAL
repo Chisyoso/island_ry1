@@ -1,0 +1,10 @@
+primero necesitar descargar raylib, y dentro de raylib creas el archivo mai.cpp o el que ustedes quieran 
+lugo vas a la carpeta donde lo tienes, ejemplo en linux:
+
+cd /home/""/build/raylib/build
+
+luego ejecutas el codigo a ver si compila:
+
+g++ {nombre del archivo}.cpp -o {nombre del ejecutable} $(pkg-config --cflags raylib) -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -lXrandr -lXi -lXcursor -lXinerama
+
+en caso de windows puedes usar simuladores de linux o programs que te dejen compilar c++ en windows.
